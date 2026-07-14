@@ -30,7 +30,9 @@
         label { display: block; font-size: 0.85rem; color: var(--accent-blue); margin-bottom: 5px; }
         input, select { width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; }
         .btn { width: 100%; padding: 14px; background: linear-gradient(45deg, var(--accent-pink), #ff0055); border: none; border-radius: 8px; color: #fff; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .btn-delete { background: #ff3333; padding: 6px 10px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .qr-section { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #888; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.3); margin-top: 8px; border-radius: 5px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -76,9 +78,9 @@
                 <div class="form-group">
                     <label for="player-dept-select">エントリー部門</label>
                     <select id="player-dept-select">
-                        <option value="kids">キッズ部門（ちっちゃい子）</option>
-                        <option value="general" selected>一般部門</option>
-                        <option value="pro">ガチ・運動部部門</option>
+                        <option value="kids">キッズ部門</option>
+                        <option value="general" selected>全体</option>
+                        <option value="pro">ウルスラ内部門</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -86,7 +88,14 @@
                     <input type="number" id="player-score-input" placeholder="例：350">
                 </div>
                 <button class="btn" id="btn-submit">スコアを送信！</button>
-                <p style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: #ff007f; cursor: pointer;" id="btn-lock">← 画面をロックする</p>
+                
+                <!-- 管理用データ削除エリア -->
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
+                    <p style="color: var(--accent-blue); font-weight: bold; font-size: 0.9rem; margin-bottom: 10px;">【データ管理】登録済みのデータ一覧</p>
+                    <div id="admin-data-list"></div>
+                </div>
+
+                <p style="text-align: center; margin-top: 25px; font-size: 0.8rem; color: #ff007f; cursor: pointer;" id="btn-lock">← 画面をロックする</p>
             </div>
         </div>
     </div>
@@ -97,7 +106,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Firebaseの設定
         const firebaseConfig = {
@@ -118,10 +127,11 @@
         const q = query(collection(db, "scores"), orderBy("score", "desc"));
         onSnapshot(q, (querySnapshot) => {
             globalScores = [];
-            querySnapshot.forEach((doc) => {
-                globalScores.push(doc.data());
+            querySnapshot.forEach((d) => {
+                globalScores.push({ id: d.id, ...d.data() });
             });
             renderRanking();
+            renderAdminList();
         });
 
         function renderRanking() {
@@ -152,6 +162,42 @@
             });
         }
 
+        // 管理画面用のデータ一覧表示と削除イベントの紐付け
+        function renderAdminList() {
+            const adminListEl = document.getElementById('admin-data-list');
+            adminListEl.innerHTML = '';
+
+            if (globalScores.length === 0) {
+                adminListEl.innerHTML = '<p style="color:#888; font-size:0.8rem;">データがありません</p>';
+                return;
+            }
+
+            globalScores.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = 'admin-list-item';
+                div.innerHTML = `
+                    <span>${escapeHTML(item.name)} (${item.score}pts)</span>
+                    <button class="btn-delete" data-id="${item.id}">削除</button>
+                `;
+                adminListEl.appendChild(div);
+            });
+
+            // すべての削除ボタンに削除処理を設定
+            adminListEl.querySelectorAll('.btn-delete').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (confirm('このデータを削除してもよろしいですか？')) {
+                        try {
+                            await deleteDoc(doc(db, "scores", id));
+                            alert('削除しました');
+                        } catch (error) {
+                            alert('削除に失敗しました');
+                        }
+                    }
+                });
+            });
+        }
+
         async function submitScore() {
             const name = document.getElementById('player-name').value.trim();
             const dept = document.getElementById('player-dept-select').value;
@@ -168,8 +214,6 @@
                 });
                 document.getElementById('player-name').value = '';
                 document.getElementById('player-score-input').value = '';
-                lockAdmin();
-                switchTab('view');
             } catch (e) {
                 console.error(e);
                 alert('送信エラーが発生しました');
@@ -197,7 +241,6 @@
 
         function checkPassword() {
             const pass = document.getElementById('admin-pass').value;
-            // 新しいパスワード「211211」に変更しました！
             if (pass === '211211') {
                 document.getElementById('admin-auth').style.display = 'none';
                 document.getElementById('score-form-container').style.display = 'block';
