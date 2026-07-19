@@ -5,34 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ランキング</title>
     <style>
-        :root { --primary-bg: #120136; --accent-pink: #ff007f; --accent-blue: #00f0ff; --accent-yellow: #fffb00; --card-bg: rgba(255, 255, 255, 0.08); }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background: radial-gradient(circle, #20014f 0%, #050014 100%); color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        :root { 
+            --primary-bg: #f4f9ff; 
+            --accent-pink: #ff8ebb; 
+            --accent-blue: #64d3ff; 
+            --accent-yellow: #fff37a; 
+            --card-bg: rgba(255, 255, 255, 0.85); 
+            --text-color: #4a3b63;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; }
+        body { 
+            background: linear-gradient(135deg, #e3f6fc 0%, #fdf0f6 40%, #fffae6 70%, #ece6ff 100%); 
+            color: var(--text-color); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+        }
         header { text-align: center; margin-bottom: 25px; width: 100%; max-width: 600px; }
-        h1 { font-size: 2rem; color: var(--accent-yellow); text-shadow: 0 0 10px rgba(255, 251, 0, 0.6), 3px 3px 0px var(--accent-pink); letter-spacing: 2px; }
-        .subtitle { font-size: 0.9rem; color: var(--accent-blue); font-weight: bold; }
-        .container { width: 100%; max-width: 600px; background: var(--card-bg); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; }
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); }
-        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #aaa; font-size: 1rem; font-weight: bold; cursor: pointer; }
-        .tab-btn.active { color: #fff; border-bottom: 3px solid var(--accent-pink); }
+        h1 { 
+            font-size: 2.2rem; 
+            color: #5171eb; 
+            text-shadow: 2px 2px 0px var(--accent-yellow), -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff, 1px 1px 0px #fff;
+            letter-spacing: 3px; 
+            font-weight: 900;
+        }
+        .subtitle { font-size: 0.85rem; color: #a193bd; font-weight: bold; letter-spacing: 1px; margin-top: 5px; }
+        .container { 
+            width: 100%; 
+            max-width: 600px; 
+            background: var(--card-bg); 
+            border: none;
+            box-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+            border-radius: 20px; 
+            padding: 24px; 
+            backdrop-filter: blur(10px);
+        }
+        .tabs { display: flex; margin-bottom: 20px; background: rgba(0,0,0,0.04); padding: 5px; border-radius: 30px; }
+        .tab-btn { flex: 1; padding: 10px; background: none; border: none; color: #8e80a9; font-size: 0.95rem; font-weight: bold; cursor: pointer; border-radius: 25px; transition: all 0.2s; }
+        .tab-btn.active { color: #5171eb; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .ranking-item { display: flex; align-items: center; padding: 12px 15px; margin-bottom: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; border-left: 5px solid #ccc; }
-        .ranking-item.rank-1 { border-left-color: var(--accent-yellow); background: rgba(255, 251, 0, 0.1); }
-        .ranking-item.rank-2 { border-left-color: #e6e6e6; background: rgba(230, 230, 230, 0.08); }
-        .ranking-item.rank-3 { border-left-color: #cd7f32; background: rgba(205, 127, 50, 0.08); }
-        .rank-num { font-size: 1.5rem; font-weight: 900; width: 40px; text-align: center; }
+        
+        .ranking-item { display: flex; align-items: center; padding: 14px 18px; margin-bottom: 12px; background: #fff; border-radius: 14px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 4px 6px rgba(0,0,0,0.01); transition: transform 0.2s; }
+        .ranking-item.rank-1 { background: linear-gradient(90deg, #fffdf0 0%, #fff 100%); border: 2px solid var(--accent-yellow); }
+        .ranking-item.rank-2 { background: linear-gradient(90deg, #f7f9fa 0%, #fff 100%); border: 2px solid #e1e7ec; }
+        .ranking-item.rank-3 { background: linear-gradient(90deg, #fff7f3 0%, #fff 100%); border: 2px solid #ffd8c4; }
+        
+        .rank-num { font-size: 1.6rem; font-weight: 900; width: 40px; text-align: center; color: #8e80a9; }
+        .rank-1 .rank-num { color: #f39c12; font-size: 1.9rem; }
+        .rank-2 .rank-num { color: #95a5a6; font-size: 1.8rem; }
+        .rank-3 .rank-num { color: #d35400; font-size: 1.7rem; }
+        
         .player-info { flex-grow: 1; padding-left: 15px; }
-        .player-name { font-size: 1.1rem; font-weight: bold; }
-        .player-dept { font-size: 0.75rem; color: #aaa; }
-        .player-score { font-size: 1.4rem; font-weight: bold; color: var(--accent-blue); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; color: var(--accent-blue); margin-bottom: 5px; }
-        input, select { width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; }
-        .btn { width: 100%; padding: 14px; background: linear-gradient(45deg, var(--accent-pink), #ff0055); border: none; border-radius: 8px; color: #fff; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-        .btn-delete { background: #ff3333; padding: 6px 10px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
-        .qr-section { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #888; }
-        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.3); margin-top: 8px; border-radius: 5px; font-size: 0.9rem; }
+        .player-name { font-size: 1.1rem; font-weight: bold; color: #332250; }
+        .player-dept { font-size: 0.75rem; color: #9b8cb8; font-weight: bold; margin-top: 2px; }
+        .player-score { font-size: 1.5rem; font-weight: 800; color: #5171eb; }
+        .player-score span { font-size: 0.8rem; margin-left: 2px; color: #8e80a9; }
+        
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 0.85rem; color: #6a598a; margin-bottom: 6px; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; background: #fff; border: 2px solid #e1daed; border-radius: 10px; color: var(--text-color); font-size: 1rem; transition: border-color 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--accent-blue); }
+        
+        .btn { width: 100%; padding: 14px; background: linear-gradient(45deg, #64d3ff, #5171eb); border: none; border-radius: 30px; color: #fff; font-size: 1.1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(81, 113, 235, 0.3); transition: all 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-delete { background: #ff5e5e; padding: 6px 12px; border: none; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; box-shadow: 0 2px 6px rgba(255,94,94,0.2); }
+        
+        .qr-section { text-align: center; margin-top: 25px; font-size: 0.8rem; color: #8c7fa6; font-weight: bold; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff; margin-top: 8px; border-radius: 10px; font-size: 0.9rem; border: 1px solid #ebdff2; }
     </style>
 </head>
 <body>
@@ -54,7 +96,7 @@
                 <select id="filter-dept">
                     <option value="all">すべての部門</option>
                     <option value="kids">キッズ部門</option>
-                    <option value="general">一般人部門</option>
+                    <option value="general">一般部門</option>
                     <option value="pro">ウルスラ内部門</option>
                 </select>
             </div>
@@ -63,24 +105,24 @@
 
         <div id="tab-input" class="tab-content">
             <div id="admin-auth">
-                <div style="text-align: center; padding: 20px;">
-                    <p style="margin-bottom: 15px; color: #ccc;">スタッフ専用パスワード</p>
-                    <input type="password" id="admin-pass" placeholder="パスワードを入力してください" style="text-align: center; margin-bottom: 15px;">
+                <div style="text-align: center; padding: 10px;">
+                    <p style="margin-bottom: 15px; color: #6a598a; font-weight: bold;">スタッフ専用パスワード</p>
+                    <input type="password" id="admin-pass" placeholder="パスワードを入力してください" style="text-align: center; margin-bottom: 20px;">
                     <button class="btn" id="btn-auth">認証する</button>
                 </div>
             </div>
 
             <div id="score-form-container" style="display: none;">
                 <div class="form-group">
-                    <label for="player-name">プレイヤー名 （ひらがな&フルネームで）</label>
-                    <input type="text" id="player-name" placeholder="例：やまだたろう">
+                    <label for="player-name">プレイヤー名 / グループ名</label>
+                    <input type="text" id="player-name" placeholder="例：チーム相葉">
                 </div>
                 <div class="form-group">
                     <label for="player-dept-select">エントリー部門</label>
                     <select id="player-dept-select">
-                        <option value="kids">キッズ部門</option>
-                        <option value="general" selected>一般人</option>
-                        <option value="pro">ウルスラ内部門</option>
+                        <option value="kids">キッズ部門（ちっちゃい子）</option>
+                        <option value="general" selected>一般部門</option>
+                        <option value="pro">ガチ・運動部部門</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -90,12 +132,12 @@
                 <button class="btn" id="btn-submit">スコアを送信！</button>
                 
                 <!-- 管理用データ削除エリア -->
-                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
-                    <p style="color: var(--accent-blue); font-weight: bold; font-size: 0.9rem; margin-bottom: 10px;">【データ管理】登録済みのデータ一覧</p>
+                <div style="margin-top: 30px; border-top: 2px dashed #ebdff2; padding-top: 20px;">
+                    <p style="color: #5171eb; font-weight: bold; font-size: 0.9rem; margin-bottom: 10px;">【データ管理】登録済みのデータ一覧</p>
                     <div id="admin-data-list"></div>
                 </div>
 
-                <p style="text-align: center; margin-top: 25px; font-size: 0.8rem; color: #ff007f; cursor: pointer;" id="btn-lock">← 画面をロックする</p>
+                <p style="text-align: center; margin-top: 25px; font-size: 0.85rem; color: #ff5e5e; font-weight: bold; cursor: pointer;" id="btn-lock">← 画面をロックする</p>
             </div>
         </div>
     </div>
@@ -149,7 +191,7 @@
                 let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
                 li.className = `ranking-item ${rankClass}`;
 
-                let deptText = item.dept === 'kids' ? "キッズ" : item.dept === 'pro' ? "一般" : "一般";
+                let deptText = item.dept === 'kids' ? "キッズ" : item.dept === 'pro' ? "ガチ" : "一般";
                 li.innerHTML = `
                     <div class="rank-num">${index + 1}</div>
                     <div class="player-info">
@@ -162,7 +204,6 @@
             });
         }
 
-        // 管理画面用のデータ一覧表示と削除イベントの紐付け
         function renderAdminList() {
             const adminListEl = document.getElementById('admin-data-list');
             adminListEl.innerHTML = '';
@@ -176,13 +217,12 @@
                 const div = document.createElement('div');
                 div.className = 'admin-list-item';
                 div.innerHTML = `
-                    <span>${escapeHTML(item.name)} (${item.score}pts)</span>
+                    <span style="font-weight:bold; color:#332250;">${escapeHTML(item.name)} (${item.score}pts)</span>
                     <button class="btn-delete" data-id="${item.id}">削除</button>
                 `;
                 adminListEl.appendChild(div);
             });
 
-            // すべての削除ボタンに削除処理を設定
             adminListEl.querySelectorAll('.btn-delete').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     const id = e.target.getAttribute('data-id');
