@@ -133,6 +133,13 @@
         }
         .ranking-item:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.15); }
         
+        /* 検索一致時の強調スタイル */
+        .ranking-item.search-highlight {
+            border: 2px solid var(--color-blue) !important;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4) !important;
+            background: rgba(0, 210, 255, 0.08) !important;
+        }
+        
         .rank-num { font-size: 1.3rem; font-weight: 800; width: 45px; text-align: center; color: rgba(255, 255, 255, 0.4); font-style: italic; position: relative; z-index: 2; }
         
         /* 🥇 1位：金色に妖艶・ド派手に光る演出 */
@@ -207,9 +214,17 @@
                     <option value="all">すべての部門</option>
                     <option value="kids">キッズ部門</option>
                     <option value="general">一般部門</option>
-                    <option value="pro">ウルスラ内部門</option>
+                    <option value="ursula">ウルスラ内部門</option>
                 </select>
             </div>
+
+            <!-- ▼ 自分の順位検索用入力欄を追加 ▼ -->
+            <div class="form-group">
+                <label for="search-name">自分の順位を検索</label>
+                <input type="text" id="search-name" placeholder="名前を入力して検索...">
+            </div>
+            <!-- ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ -->
+
             <ul class="ranking-list" id="ranking-list"></ul>
         </div>
 
@@ -224,7 +239,7 @@
 
             <div id="score-form-container" style="display: none;">
                 <div class="form-group">
-                    <label for="player-name">プレイヤー名　漢字だと読めない可能性あって大変だから英語で</label>
+                    <label for="player-name">プレイヤー名 漢字だと読めない可能性あって大変だから英語で</label>
                     <input type="text" id="player-name" placeholder="例：Ymada Tarou">
                 </div>
                 <div class="form-group">
@@ -288,29 +303,52 @@
 
         function renderRanking() {
             const filterDept = document.getElementById('filter-dept').value;
+            const searchKeyword = document.getElementById('search-name').value.trim().toLowerCase();
             const listEl = document.getElementById('ranking-list');
             listEl.innerHTML = '';
 
-            let filtered = [...globalScores];
+            // 1. 部門フィルター適用
+            let baseFiltered = [...globalScores];
             if (filterDept !== 'all') {
-                filtered = filtered.filter(s => s.dept === filterDept);
+                baseFiltered = baseFiltered.filter(s => s.dept === filterDept);
             }
 
-            filtered.forEach((item, index) => {
+            // 部門内での実際の順位を保持したオブジェクト配下に変換
+            let rankedData = baseFiltered.map((item, idx) => ({
+                ...item,
+                actualRank: idx + 1 // 実際の正しい順位
+            }));
+
+            // 2. 検索キーワードでフィルタリング
+            let displayList = rankedData;
+            if (searchKeyword !== '') {
+                displayList = rankedData.filter(item => 
+                    item.name.toLowerCase().includes(searchKeyword)
+                );
+            }
+
+            if (displayList.length === 0) {
+                listEl.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.4); padding:20px;">該当するプレイヤーは見つかりませんでした</p>';
+                return;
+            }
+
+            displayList.forEach((item) => {
                 const li = document.createElement('li');
                 
-                // 1〜3位と4位以降のクラス分け
+                // 1〜3位と4位以降のクラス分け（実際の順位ベース）
                 let rankClass = '';
                 let medalEmoji = '';
-                if (index === 0) { rankClass = 'rank-1'; medalEmoji = '🥇 '; }
-                else if (index === 1) { rankClass = 'rank-2'; medalEmoji = '🥈 '; }
-                else if (index === 2) { rankClass = 'rank-3'; medalEmoji = '🥉 '; }
+                if (item.actualRank === 1) { rankClass = 'rank-1'; medalEmoji = '🥇 '; }
+                else if (item.actualRank === 2) { rankClass = 'rank-2'; medalEmoji = '🥈 '; }
+                else if (item.actualRank === 3) { rankClass = 'rank-3'; medalEmoji = '🥉 '; }
                 
-                li.className = `ranking-item ${rankClass}`;
+                // 検索指定時はハイライト枠をつける
+                let highlightClass = searchKeyword !== '' ? ' search-highlight' : '';
+                li.className = `ranking-item ${rankClass}${highlightClass}`;
 
-                let deptText = item.dept === 'kids' ? "キッズ" : item.dept === 'pro' ? "ガチ" : "一般";
+                let deptText = item.dept === 'kids' ? "キッズ" : item.dept === 'ursula' ? "ウルスラ内" : "一般";
                 li.innerHTML = `
-                    <div class="rank-num">${medalEmoji}${index + 1}</div>
+                    <div class="rank-num">${medalEmoji}${item.actualRank}</div>
                     <div class="player-info">
                         <div class="player-name">${escapeHTML(item.name)}</div>
                         <div class="player-dept">【${deptText}部門】</div>
@@ -378,6 +416,7 @@
         }
 
         document.getElementById('filter-dept').addEventListener('change', renderRanking);
+        document.getElementById('search-name').addEventListener('input', renderRanking); // 検索入力のイベント追加
         document.getElementById('btn-submit').addEventListener('click', submitScore);
         document.getElementById('btn-view').addEventListener('click', () => switchTab('view'));
         document.getElementById('btn-input').addEventListener('click', () => switchTab('input'));
